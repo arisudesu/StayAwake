@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using StayAwake.Properties;
 
@@ -9,6 +10,18 @@ namespace StayAwake
     {
         [STAThread]
         public static void Main()
+        {
+            using var singleInstanceMutex = new Mutex(false, "StayAwakeMutex");
+            var isAlreadyRunning = !singleInstanceMutex.WaitOne(TimeSpan.Zero);
+
+            if (isAlreadyRunning)
+                return;
+
+            MainSingleInstance();
+            singleInstanceMutex.ReleaseMutex();
+        }
+
+        private static void MainSingleInstance()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
